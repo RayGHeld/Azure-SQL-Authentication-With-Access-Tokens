@@ -24,7 +24,6 @@ namespace Console_Connect_SQL
 		private const string REDIRECT_URI = "http://localhost";
 		private const string CONNECTION_STRING = "Server=tcp:{your azure database instance name}.database.windows.net,1433;Initial Catalog=RayLab;Persist Security Info=False;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False";
 		private static readonly string[] scopes = new string[] { "https://database.windows.net/.default" };
-		private static readonly string[] scopes2 = new string[] { "User.Read" };
 
 		/// <summary>
 		/// Method will prompt user to sign in using azure credentials.  User must be a user in the database as well for the
@@ -63,54 +62,6 @@ namespace Console_Connect_SQL
 			return accessToken;
 		}
 
-		public static async Task<string> Get_TokenByIntegratedWindows()
-        {
-			IPublicClientApplication app = PublicClientApplicationBuilder
-				.Create("1f29ae22-5b9e-412a-8ed5-3e3a1ce91f53")
-				.WithAuthority(AzureCloudInstance.AzurePublic, "72f988bf-86f1-41af-91ab-2d7cd011db47") // microsoft tenant
-				.WithRedirectUri(REDIRECT_URI)
-				.Build();
-
-			string accessToken = string.Empty;
-
-			AuthenticationResult authResult = null;
-			IEnumerable<IAccount> accounts = await app.GetAccountsAsync();
-
-			try
-			{
-				authResult = await app.AcquireTokenByIntegratedWindowsAuth(scopes2).ExecuteAsync();
-				accessToken = authResult.AccessToken;
-			}
-			catch (MsalUiRequiredException)
-			{
-				authResult = await app.AcquireTokenInteractive(scopes2).ExecuteAsync();
-				accessToken = authResult.AccessToken;
-			}
-			catch (Exception ex)
-			{
-				Console.WriteLine($"Authentication error: {ex.Message}");
-			}
-
-			Console.WriteLine($"Access token: {accessToken}\n");
-
-			return accessToken;
-		}
-
-		public static async Task<string> Get_OBOToken(string assertion)
-        {
-			IConfidentialClientApplication app = ConfidentialClientApplicationBuilder
-				.Create(CLIENT_ID)
-				.WithClientSecret(CLIENT_SECRET)
-				.WithRedirectUri(REDIRECT_URI)
-				.Build();
-
-			UserAssertion userAssertion = new UserAssertion(assertion, "urn:ietf:params:oauth:grant-type:jwt-bearer");
-			AuthenticationResult result = await app.AcquireTokenOnBehalfOf(scopes, userAssertion).ExecuteAsync();
-
-			string accessToken = result.AccessToken;
-			return accessToken;
-
-        }
 
 		/// <summary>
 		/// Uses client credentials to obtain an access token for the database - the service principal application object name ( not id ) must
